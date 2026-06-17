@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scene Lab 正在刷新</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #eef3f8;
+        color: #344258;
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      }
+      main { text-align: center; }
+      h1 { margin: 0 0 10px; font-size: 20px; }
+      p { margin: 0; opacity: 0.72; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>正在刷新 Scene Lab</h1>
+      <p>清理旧缓存后自动进入工具页。</p>
+    </main>
+    <script>
+      (async () => {
+        try {
+          localStorage.removeItem("scene_lab_api_config_20260617_proxy");
+          localStorage.removeItem("scene_lab_api_config_20260617_proxy_force_local_v2");
+          localStorage.removeItem("slaypic_product_settings_no_api_attachment");
+          localStorage.removeItem("slaypic_api_config_no_api_attachment");
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.filter((key) => key.startsWith("scene-lab-")).map((key) => caches.delete(key)));
+          }
+          if ("serviceWorker" in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map((registration) => registration.unregister()));
+          }
+        } catch (error) {
+          console.warn("Scene Lab 缓存清理失败", error);
+        } finally {
+          location.replace("./index.html?v=tool-proxy3-20260617&t=" + Date.now());
+        }
+      })();
+    </script>
+  </body>
+</html>
