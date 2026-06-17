@@ -1,0 +1,8 @@
+Scene Lab 精简版
+
+双击「一键启动-Mac.command」启动。
+默认打开 intro.html，点击「进入生图工具」进入 index.html。
+访问密码：GZGZ
+后台密码：gzgz
+
+不要删除：index.html、intro.html、scene_lab_server.py、sw.js、manifest.json、assets 文件夹。
