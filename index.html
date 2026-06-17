@@ -4259,7 +4259,7 @@ const NEWAPI_NANO_MODEL = "gemini-3.1-flash-image-preview";
 const GPT_IMAGE_MODEL = "gpt-image-2";
 const IMAGE2_API_KEY = "";
 const GPT_TEXT_ONLY_API_KEY = "";
-const PUBLIC_API_PROXY_ORIGIN = "https://86c6dc687d6fc1.lhr.life";
+const PUBLIC_API_PROXY_ORIGIN = "https://4bf787eae8b134.lhr.life";
 const ASPECT_RATIO_COPY = {
   "16:9": "landscape orientation, width:height = 16:9",
   "4:3": "landscape orientation, width:height = 4:3",
@@ -5995,7 +5995,10 @@ async function callGenerateContent(url, parts, apiKey = state.settings.apiKey, g
         body
       });
     } catch (error) {
-      throw new Error(`网络请求失败: ${error?.message || error}`);
+      const proxyHint = /^https?:\/\/[^/]+\.lhr\.life/i.test(url)
+        ? "公网代理不可用或已换地址，请重启后端代理。"
+        : "请检查网络或本地代理。";
+      throw new Error(`网络请求失败: ${proxyHint} ${error?.message || error}`);
     }
     const result = await response.json().catch(() => ({}));
     if (response.ok) return result;
