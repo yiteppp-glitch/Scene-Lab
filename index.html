@@ -4231,7 +4231,7 @@ const ENTRY_PASSWORD = "GZGZ";
 const ENTRY_ACCESS_KEY = "slaypic_entry_access_no_api_attachment";
 const SETTINGS_KEY = "slaypic_product_settings_no_api_attachment";
 const API_STORAGE_KEY = "slaypic_api_config_no_api_attachment";
-const API_CONFIG_MIGRATION_KEY = "scene_lab_api_config_20260617_proxy_force_local_v2";
+const API_CONFIG_MIGRATION_KEY = "scene_lab_api_config_20260618_public_proxy_v1";
 const PROMPT_STORAGE_KEY = "slaypic_prompts_no_api_attachment";
 const ASPECT_RATIO_STORAGE_KEY = "slaypic_aspect_ratio_no_api_attachment";
 const GENERATION_ENGINE_STORAGE_KEY = "slaypic_generation_engine_no_api_attachment";
@@ -4259,6 +4259,7 @@ const NEWAPI_NANO_MODEL = "gemini-3.1-flash-image-preview";
 const GPT_IMAGE_MODEL = "gpt-image-2";
 const IMAGE2_API_KEY = "";
 const GPT_TEXT_ONLY_API_KEY = "";
+const PUBLIC_API_PROXY_ORIGIN = "https://2efb6c7a65f573.lhr.life";
 const ASPECT_RATIO_COPY = {
   "16:9": "landscape orientation, width:height = 16:9",
   "4:3": "landscape orientation, width:height = 4:3",
@@ -4292,7 +4293,7 @@ const SAFETY_SETTINGS = [
 
 const DEFAULT_API_CONFIG = {
   apiKey: NEWAPI_CHANNEL_CONN.key,
-  apiGenUrl: "./api/generateContent",
+  apiGenUrl: getDefaultApiGenUrl(),
   gptApiKey: GPTAPI_CHANNEL_CONN.key,
   gptFallbackApiKey: "",
   gptEditUrl: `${GPTAPI_CHANNEL_CONN.url}/v1/images/edits`
@@ -4463,21 +4464,33 @@ function loadSettings() {
 
 function normalizeApiGenUrl(value) {
   const url = String(value || "").trim();
-  return getLocalProxyApiUrl(url);
+  return getProxyApiUrl(url);
 }
 
-function getLocalProxyApiUrl(value) {
+function getDefaultApiGenUrl() {
+  return isGithubPagesHost() ? `${PUBLIC_API_PROXY_ORIGIN}/api/generateContent` : "./api/generateContent";
+}
+
+function isGithubPagesHost() {
+  return location.hostname.endsWith(".github.io");
+}
+
+function getProxyApiUrl(value) {
   const url = String(value || "").trim();
-  if (!url) return DEFAULT_API_CONFIG.apiGenUrl;
+  const fallback = getDefaultApiGenUrl();
+  if (!url) return fallback;
   try {
     const parsed = new URL(url, location.href);
     if (parsed.origin === location.origin && parsed.pathname === "/api/generateContent") {
       return `${parsed.pathname}${parsed.search || ""}`;
     }
+    if (isGithubPagesHost() && parsed.origin === PUBLIC_API_PROXY_ORIGIN && parsed.pathname === "/api/generateContent") {
+      return `${parsed.origin}${parsed.pathname}${parsed.search || ""}`;
+    }
   } catch (error) {
-    // 历史直连配置会触发浏览器 Failed to fetch；统一回到同源代理。
+    // 历史直连配置会触发浏览器 Failed to fetch；统一回到当前页面可用代理。
   }
-  return DEFAULT_API_CONFIG.apiGenUrl;
+  return fallback;
 }
 
 function normalizeImage2ApiKey(value) {
@@ -5614,7 +5627,7 @@ async function callImageApi(payload) {
 
 async function callNanoImageApi(payload) {
   const settings = payload.settings || state.settings;
-  const imageUrl = getLocalProxyApiUrl(settings.apiGenUrl);
+  const imageUrl = getProxyApiUrl(settings.apiGenUrl);
   if (!settings.apiKey || !imageUrl) throw new Error("API 配置不完整");
   const parts = [];
   for (const url of payload.urls || []) {
