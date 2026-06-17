@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Scene Lab — 产品场景图工具</title>
+    <meta name="description" content="Scene Lab：上传产品图，进入生图工具即可批量生成高级感场景图、组图与本地抠图。" />
+    <meta name="theme-color" content="#eef3f8" />
+    <style>
+@font-face {
+  font-family: "Arctic";
+  src: url("./assets/Arctic.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --serif: "Arctic", "Times New Roman", Georgia, "Songti SC", serif;
+  --sans: Inter, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --ink: #3a485a;            /* 深岩蓝 */
+  --ink-press: #2c3744;
+  --muted: rgba(58, 72, 90, 0.62);
+  --faint: rgba(58, 72, 90, 0.42);
+  --line: rgba(96, 130, 175, 0.26);
+  --glass: rgba(255, 255, 255, 0.6);
+  --glass-strong: rgba(255, 255, 255, 0.72);
+  --on-ink: #f3f7fa;
+  --maxw: 1120px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.6;
+  background:
+    radial-gradient(140% 80% at 50% -10%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 55%),
+    radial-gradient(80% 60% at 88% 8%, rgba(168, 197, 226, 0.45), rgba(168, 197, 226, 0) 55%),
+    radial-gradient(75% 60% at 6% 30%, rgba(198, 214, 234, 0.4), rgba(198, 214, 234, 0) 55%),
+    linear-gradient(170deg, #eef3f8 0%, #e3eaf1 52%, #e8eef5 100%);
+  min-height: 100vh;
+}
+
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+
+.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+
+/* —— 通用排版 —— */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.serif { font-family: var(--serif); font-weight: 400; }
+
+/* —— 顶栏 —— */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--line);
+  background: rgba(238, 243, 248, 0.66);
+  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  backdrop-filter: blur(26px) saturate(150%);
+}
+.nav .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+.brand {
+  font-family: var(--serif);
+  font-size: 22px;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.nav-links { display: flex; align-items: center; gap: 26px; }
+.nav-links a:not(.btn) { font-size: 14px; color: var(--muted); transition: color 0.2s ease; }
+.nav-links a:not(.btn):hover { color: var(--ink); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--ink);
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), background 0.2s ease, color 0.2s ease;
+}
+.btn-primary { background: var(--ink); color: var(--on-ink); }
+.btn-primary:hover { background: var(--ink-press); border-color: var(--ink-press); }
+.btn-ghost {
+  background: var(--glass);
+  border-color: var(--line);
+  color: var(--ink);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.btn-ghost:hover { background: var(--glass-strong); border-color: var(--ink); }
+.btn:active { transform: scale(0.97); }
+.nav .btn { min-height: 38px; padding: 0 18px; }
+
+/* —— Hero —— */
+.hero { position: relative; overflow: hidden; padding: 96px 0 84px; }
+.hero-glow {
+  position: absolute;
+  top: -10%;
+  right: -6%;
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, rgba(255, 255, 255, 0.9), rgba(186, 208, 230, 0.5) 42%, rgba(186, 208, 230, 0) 70%);
+  filter: blur(8px);
+  pointer-events: none;
+  animation: drift 16s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-40px, 30px, 0) scale(1.08); }
+}
+.hero .eyebrow { margin-bottom: 26px; }
+.hero h1 {
+  margin: 0 0 22px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(48px, 9vw, 104px);
+  line-height: 0.98;
+  letter-spacing: 0.005em;
+}
+.hero .tagline {
+  margin: 0 0 18px;
+  font-size: clamp(22px, 3.4vw, 34px);
+  font-weight: 500;
+  line-height: 1.2;
+  max-width: 16em;
+}
+.hero p.lead {
+  margin: 0 0 34px;
+  max-width: 38em;
+  font-size: 16px;
+  color: var(--muted);
+}
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.hero-note { font-size: 12.5px; color: var(--faint); margin-left: 4px; }
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 48px;
+  margin-top: 64px;
+  padding-top: 30px;
+  border-top: 1px solid var(--line);
+}
+.hero-meta div { display: grid; gap: 4px; }
+.hero-meta .num { font-family: var(--serif); font-size: 30px; line-height: 1; }
+.hero-meta .lbl { font-size: 12.5px; color: var(--muted); }
+
+/* —— 区块标题 —— */
+.section { padding: 76px 0; }
+.section-head { max-width: 46em; margin-bottom: 44px; }
+.section-head .eyebrow { margin-bottom: 16px; }
+.section-head h2 {
+  margin: 0 0 10px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(30px, 4.6vw, 46px);
+  line-height: 1.05;
+}
+.section-head p { margin: 0; color: var(--muted); font-size: 16px; }
+
+/* —— 功能卡片 —— */
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.card {
+  position: relative;
+  padding: 28px 24px 30px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--glass);
+  box-shadow: 0 14px 40px rgba(60, 90, 130, 0.08);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.32s ease, background 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  background: var(--glass-strong);
+  box-shadow: 0 22px 56px rgba(60, 90, 130, 0.14);
+}
+.card .idx {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--faint);
+  letter-spacing: 0.08em;
+}
+.card h3 { margin: 14px 0 8px; font-size: 19px; font-weight: 650; }
+.card p { margin: 0; font-size: 14.5px; color: var(--muted); }
+.card .tags { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px; }
+.card .tags span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(214, 227, 241, 0.7);
+}
+
+/* —— 流程 —— */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; counter-reset: step; }
+.step {
+  position: relative;
+  padding: 26px 22px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.step .n {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  margin-bottom: 16px;
+}
+.step h4 { margin: 0 0 6px; font-size: 16px; font-weight: 650; }
+.step p { margin: 0; font-size: 13.5px; color: var(--muted); }
+
+/* —— 亮点 —— */
+.highlights { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 40px; }
+.hl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+.hl .dot {
+  margin-top: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ink);
+}
+.hl h4 { margin: 0 0 4px; font-size: 16px; font-weight: 650; }
+.hl p { margin: 0; font-size: 14px; color: var(--muted); }
+
+/* —— CTA —— */
+.cta {
+  margin: 24px 0 88px;
+  padding: 64px 40px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: var(--glass-strong);
+  box-shadow: 0 30px 80px rgba(40, 60, 95, 0.16);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  backdrop-filter: blur(30px) saturate(150%);
+  text-align: center;
+}
+.cta h2 {
+  margin: 0 0 12px;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: 1.02;
+}
+.cta p { margin: 0 auto 28px; max-width: 32em; color: var(--muted); }
+
+/* —— 页脚 —— */
+.footer { padding: 30px 0 44px; border-top: 1px solid var(--line); }
+.footer .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.footer .brand { font-size: 18px; }
+.footer small { color: var(--faint); font-size: 12.5px; }
+
+/* —— 滚动出现 —— */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-reveal].in { opacity: 1; transform: none; }
+
+@media (max-width: 900px) {
+  .features { grid-template-columns: repeat(2, 1fr); }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .wrap { padding: 0 18px; }
+  .hero { padding: 64px 0 56px; }
+  .nav-links a:not(.btn) { display: none; }
+  .features, .steps, .highlights { grid-template-columns: 1fr; }
+  .cta { padding: 44px 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .hero-glow { animation: none; }
+  html { scroll-behavior: auto; }
+}
+    </style>
+  </head>
+  <body>
+    <header class="nav">
+      <div class="wrap">
+        <a class="brand" href="#top">Scene Lab</a>
+        <nav class="nav-links">
+          <a href="#features">功能</a>
+          <a href="#how">流程</a>
+          <a href="#why">特性</a>
+          <a class="btn btn-primary" href="./reset.html?v=tool-proxy3-20260617">进入生图工具</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <span class="hero-glow" aria-hidden="true"></span>
+        <div class="wrap">
+          <span class="eyebrow" data-reveal>AI 产品场景图工具</span>
+          <h1 class="serif" data-reveal>Scene Lab</h1>
+          <p class="tagline" data-reveal>把产品图，放进高级感场景。</p>
+          <p class="lead" data-reveal>
+            上传产品图，选择比例，也可以导入目标场景参考；通过本地代理稳定调用生图接口，
+            严格保留颜色、logo 与形状。批量生成、组图、本地抠图，一站完成。
+          </p>
+          <div class="hero-actions" data-reveal>
+            <a class="btn btn-primary" href="./reset.html?v=tool-proxy3-20260617">进入生图工具 →</a>
+            <a class="btn btn-ghost" href="#features">查看功能</a>
+            <span class="hero-note">本地代理生图 · 手动参考图 · 本地抠图不上传</span>
+          </div>
+
+          <div class="hero-meta" data-reveal>
+            <div><span class="num serif">5</span><span class="lbl">输出比例</span></div>
+            <div><span class="num serif">3-in-1</span><span class="lbl">生成 · 组图 · 抠图</span></div>
+            <div><span class="num serif">100%</span><span class="lbl">商品保真优先</span></div>
+            <div><span class="num serif">Proxy</span><span class="lbl">本地代理 · 稳定连接</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="wrap">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Features</span>
+            <h2 class="serif">一套工具，覆盖出图全流程</h2>
+            <p>从场景合成到电商主图，把重复的活儿交给批处理。</p>
+          </div>
+          <div class="features">
+            <article class="card" data-reveal>
+              <span class="idx">01</span>
+              <h3>批量生成场景图</h3>
+              <p>上传即用：通过稳定生图通道将产品自然融入高级场景，颜色、logo、文字与刚性部件形状严格不变。</p>
+              <div class="tags"><span>场景合成</span><span>稳定生图</span><span>商品保真</span></div>
+            </article>
+            <article class="card" data-reveal>
+              <span class="idx">02</span>
+              <h3>批量组图</h3>
+              <p>一键扩展同一商品的视觉：俯拍平铺与极致微距细节，机位与构图变化，调性保持一致。</p>
+              <div class="tags"><span>俯拍平铺</span><span>微距细节</span></div>
+            </article>
+            <article class="card" data-reveal>
+              <span class="idx">03</span>
+              <h3>批量抠图</h3>
+              <p>浏览器本地 AI 抠图，输出透明 PNG 与白底图，电商主图即取即用。原图不出本机，隐私无虞。</p>
+              <div class="tags"><span>透明 PNG</span><span>白底图</span><span>本地处理</span></div>
+            </article>
+            <article class="card" data-reveal>
+              <span class="idx">04</span>
+              <h3>参考图引导</h3>
+              <p>导入目标场景参考，沿用其色温、曝光、景深与构图气质，让出图风格稳定可控。</p>
+              <div class="tags"><span>风格参考</span><span>构图沿用</span></div>
+            </article>
+            <article class="card" data-reveal>
+              <span class="idx">05</span>
+              <h3>多比例输出</h3>
+              <p>16:9 / 4:3 / 1:1 / 3:4 / 9:16 一键切换，适配主图、详情页与各平台版式。</p>
+              <div class="tags"><span>5 种比例</span><span>多平台适配</span></div>
+            </article>
+            <article class="card" data-reveal>
+              <span class="idx">06</span>
+              <h3>大图预览 &amp; 重绘</h3>
+              <p>灯箱浏览、左右切换、单张重绘，满意了再「下载全部」，手机上还能直接分享保存。</p>
+              <div class="tags"><span>灯箱预览</span><span>单张重绘</span><span>批量下载</span></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="how">
+        <div class="wrap">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Workflow</span>
+            <h2 class="serif">四步，从产品图到成片</h2>
+            <p>拖拽、粘贴或选择文件，剩下的交给批处理。</p>
+          </div>
+          <div class="steps">
+            <div class="step" data-reveal>
+              <div class="n">1</div>
+              <h4>导入产品图</h4>
+              <p>支持批量、拖拽与粘贴；可选导入目标场景参考图。</p>
+            </div>
+            <div class="step" data-reveal>
+              <div class="n">2</div>
+              <h4>选择比例与参考</h4>
+              <p>按平台选择输出比例；可手动导入参考图，让构图、光线与氛围更可控。</p>
+            </div>
+            <div class="step" data-reveal>
+              <div class="n">3</div>
+              <h4>生成 · 组图 · 抠图</h4>
+              <p>融合出场景图，按需扩展组图，或一键本地抠图。</p>
+            </div>
+            <div class="step" data-reveal>
+              <div class="n">4</div>
+              <h4>下载交付</h4>
+              <p>「下载全部」一次取走，或在手机上直接分享保存。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="why">
+        <div class="wrap">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Why Scene Lab</span>
+            <h2 class="serif">克制、可靠、为出图而生</h2>
+          </div>
+          <div class="highlights">
+            <div class="hl" data-reveal>
+              <span class="dot"></span>
+              <div><h4>商品身份锁定</h4><p>颜色、logo、文字、按钮/接口/瓶盖等刚性部件严格不变，杜绝「改成别的产品」。</p></div>
+            </div>
+            <div class="hl" data-reveal>
+              <span class="dot"></span>
+              <div><h4>隐私本地抠图</h4><p>抠图在浏览器本地完成，模型首次联网加载后即可复用，图片不上传服务器。</p></div>
+            </div>
+            <div class="hl" data-reveal>
+              <span class="dot"></span>
+              <div><h4>本地代理通道</h4><p>生图接口通过同目录服务转发，避开浏览器跨域与 CDN 直连失败，点击进入工具即可使用。</p></div>
+            </div>
+            <div class="hl" data-reveal>
+              <span class="dot"></span>
+              <div><h4>访问保护</h4><p>进入需访问密码，防止他人随手盗用；后台可按需更换 API 配置与生成 Prompt。</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="wrap">
+        <div class="cta" data-reveal>
+          <h2 class="serif">现在就开始出图</h2>
+          <p>上传第一张产品图，直接进入稳定版生图页面开始批量出图。</p>
+          <a class="btn btn-primary" href="./reset.html?v=tool-proxy3-20260617">进入生图工具 →</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap">
+        <span class="brand serif">Scene Lab</span>
+        <small>产品场景图工具 · 内部使用 · <span id="year"></span></small>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById("year").textContent = new Date().getFullYear();
+      (() => {
+        const els = document.querySelectorAll("[data-reveal]");
+        if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          els.forEach((el) => el.classList.add("in"));
+          return;
+        }
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e, i) => {
+              if (!e.isIntersecting) return;
+              e.target.style.transitionDelay = Math.min(i * 40, 160) + "ms";
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            });
+          },
+          { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
+        );
+        els.forEach((el) => io.observe(el));
+      })();
+    </script>
+  </body>
+</html>
