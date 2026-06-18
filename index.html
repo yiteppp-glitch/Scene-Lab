@@ -4256,10 +4256,10 @@ const GPTAPI_CHANNEL_CONN = {
   url: "https://token.mediastorm.studio"
 };
 const NEWAPI_NANO_MODEL = "gemini-3.1-flash-image-preview";
+const NEWAPI_GENERATE_URL = `${NEWAPI_CHANNEL_CONN.url}/v1beta/models/${NEWAPI_NANO_MODEL}:generateContent`;
 const GPT_IMAGE_MODEL = "gpt-image-2";
 const IMAGE2_API_KEY = "";
 const GPT_TEXT_ONLY_API_KEY = "";
-const PUBLIC_API_PROXY_ORIGIN = "https://4bf787eae8b134.lhr.life";
 const ASPECT_RATIO_COPY = {
   "16:9": "landscape orientation, width:height = 16:9",
   "4:3": "landscape orientation, width:height = 4:3",
@@ -4468,7 +4468,7 @@ function normalizeApiGenUrl(value) {
 }
 
 function getDefaultApiGenUrl() {
-  return isGithubPagesHost() ? `${PUBLIC_API_PROXY_ORIGIN}/api/generateContent` : "./api/generateContent";
+  return isGithubPagesHost() ? NEWAPI_GENERATE_URL : "./api/generateContent";
 }
 
 function isGithubPagesHost() {
@@ -4484,7 +4484,8 @@ function getProxyApiUrl(value) {
     if (parsed.origin === location.origin && parsed.pathname === "/api/generateContent") {
       return `${parsed.pathname}${parsed.search || ""}`;
     }
-    if (isGithubPagesHost() && parsed.origin === PUBLIC_API_PROXY_ORIGIN && parsed.pathname === "/api/generateContent") {
+    const directApi = new URL(NEWAPI_GENERATE_URL);
+    if (isGithubPagesHost() && parsed.origin === directApi.origin && parsed.pathname === directApi.pathname) {
       return `${parsed.origin}${parsed.pathname}${parsed.search || ""}`;
     }
   } catch (error) {
@@ -5997,6 +5998,8 @@ async function callGenerateContent(url, parts, apiKey = state.settings.apiKey, g
     } catch (error) {
       const proxyHint = /^https?:\/\/[^/]+\.lhr\.life/i.test(url)
         ? "公网代理不可用或已换地址，请重启后端代理。"
+        : /newapi\.bananapro\.top/i.test(url)
+          ? "上游 API 无法连接，请检查网络或 API 服务状态。"
         : "请检查网络或本地代理。";
       throw new Error(`网络请求失败: ${proxyHint} ${error?.message || error}`);
     }
