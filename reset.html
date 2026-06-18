@@ -29,6 +29,7 @@
         try {
           localStorage.removeItem("scene_lab_api_config_20260617_proxy");
           localStorage.removeItem("scene_lab_api_config_20260617_proxy_force_local_v2");
+          localStorage.removeItem("scene_lab_api_config_20260618_public_proxy_v1");
           localStorage.removeItem("slaypic_product_settings_no_api_attachment");
           localStorage.removeItem("slaypic_api_config_no_api_attachment");
           if ("caches" in window) {
@@ -42,7 +43,7 @@
         } catch (error) {
           console.warn("Scene Lab 缓存清理失败", error);
         } finally {
-          location.replace("./index.html?v=tool-public-proxy-20260618&t=" + Date.now());
+          location.replace("./index.html?v=tool-direct-api-20260618&t=" + Date.now());
         }
       })();
     </script>
